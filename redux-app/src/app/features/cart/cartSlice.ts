@@ -1,6 +1,9 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-import cartProducts from '../../../cartProducts';
+// import cartProducts from '../../../cartProducts';
+
+const url = 'https://course-api.com/react-useReducer-cart-project';
 
 
 interface defState {
@@ -12,12 +15,26 @@ interface defState {
 }
 
 const initialState = {
-    cartItems: cartProducts,
+    cartItems: [],
     amount: 4,
     total: 0,
     isLoading: true,
     
 } as defState;
+
+export const getCartItems:any = createAsyncThunk(
+    'cart/getCartItems' ,
+    async (name, thunkAPI) => {
+        try {
+            const resp = await axios(url);
+            return resp.data;
+
+        }catch(error){
+            return thunkAPI.rejectWithValue('something went wrong');
+    
+    }
+}
+);
 
 const cartSlice = createSlice({
     name: 'cart',
@@ -49,6 +66,19 @@ const cartSlice = createSlice({
             });
             state.amount = amount;
             state.total = total;
+        },
+    },
+    extraReducers: {
+        [getCartItems.pending]: (state) => {
+            state.isLoading = true;
+        },
+        [getCartItems.fulfilled]: (state, action) => {
+            state.isLoading = false;
+            state.cartItems = action.payload;
+        },
+        [getCartItems.rejected]: (state,action) => {
+            console.log(action);
+            state.isLoading = false;
         },
     },
 });
